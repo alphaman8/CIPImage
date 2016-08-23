@@ -10,7 +10,6 @@ import conexao.ConnectionFactory;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -22,8 +21,10 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -31,13 +32,16 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javax.imageio.ImageIO;
+import javax.sound.midi.Sequence;
 import net.coobird.thumbnailator.Thumbnails;
+import sun.print.resources.serviceui;
 
 /**
  *
@@ -47,6 +51,9 @@ public class FXMLDocumentController implements Initializable {
     
     @FXML
     private CheckBox checkDeleteImages;
+    @FXML
+    private ProgressIndicator progressIndicator;
+    
     @FXML
     private TextField dirField;
     @FXML
@@ -148,87 +155,143 @@ public class FXMLDocumentController implements Initializable {
     }        
     
     @FXML
-    private void enviarImagens(ActionEvent event) {    
+    private void enviarImagens(ActionEvent event) {  
         
-        //TODO: colocar checkbox de apagar imagens no final da exportação
+        int resize = Integer.valueOf(comboResizeImage.getSelectionModel().getSelectedItem());
+        String estado = comboEstados.getSelectionModel().getSelectedItem();
+        String municipio = comboMunicipios.getSelectionModel().getSelectedItem();
+        int ano = Integer.valueOf(comboAnos.getSelectionModel().getSelectedItem());
         
-        //TODO: verificar se todos os campos necessário estão preenchidos antes de enviar imagens, se possível colocar um progresso de etapas
-        //lista de trafos maior que 0
-        //estado,municipio,ano,tamanho da imagem selecionados
+        final ServiceProgressBar service = 
+                new ServiceProgressBar(trafoList,resize,estado,municipio,ano,checkDeleteImages.isSelected());
         
-        Connection conn = ConnectionFactory.getConnectionWeb();
+        progressIndicator.progressProperty().unbind();
+        progressIndicator.progressProperty().bind(service.progressProperty());
         
-        String insert = "update pontos set imagem=? "
-                + "where estado=? and cidade=? and ano_processamento=? "
-                + "and chave_fk=? and sequencia=? and length(utilizadores) > 0";
-        try {
-            PreparedStatement ps = conn.prepareStatement(insert);
-            
-            for(Trafo t : trafoList){
-                for(Sequencia s : t.getSequencias()) {
-                    
-                    //TODO: colocar barra de progresso
-                    //TODO: Colocar msg de erro nos exception (dialog)
-          
-                    //TODO: verificar quando houver pasta vazia sem imagem. Verificar se apresenta erro.
-                    
-                    int porcent = Integer.valueOf(comboResizeImage.getSelectionModel().getSelectedItem());
-                    
-                    File img = s.getImagens()[0];
-                    String dest = s.getAbsolutePath()+"\\"+s.getSequencia()+"_thumb.jpg";
-                    //Files.copy(img.toPath(), new File(dest).toPath(),StandardCopyOption.REPLACE_EXISTING);
-                    //File imgResized = new File(dest);
-                    BufferedImage bi = ImageIO.read(img);
-                    int w = bi.getWidth();
-                    int h = bi.getHeight();
-                    float p = (float) porcent/100;
-                    int newWidth = (int) (w*p);
-                    int newHeight = (int) (h*p);
-                    Thumbnails.of(img)
-                            .size(newWidth, newHeight)
-                            .outputFormat("jpg")
-                            .toFile(new File(dest));
-                    FileInputStream fis = new FileInputStream(new File(dest));
-                    ps.setBlob(1, fis);
-                    ps.setString(2, comboEstados.getSelectionModel().getSelectedItem());
-                    ps.setString(3, comboMunicipios.getSelectionModel().getSelectedItem());
-                    int ano = Integer.valueOf(comboAnos.getSelectionModel().getSelectedItem());
-                    ps.setInt(4, ano);
-                    ps.setString(5, t.getTrafo());
-                    int seq = Integer.valueOf(s.getSequencia());
-                    ps.setInt(6, seq);                    
-                    
-                    int i = ps.executeUpdate();    
-                    
-                    fis.close();
+        service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 
-                    System.out.println(s.getImagens()[0].getAbsoluteFile()+":"+i);
-                }
+            @Override
+            public void handle(WorkerStateEvent t) {
+                String result = service.getValue();
+                System.out.println(result);
             }
-            
-            if (checkDeleteImages.isSelected()){
-                for(Trafo t : trafoList) {
-                    for(Sequencia s : t.getSequencias()) {
-                        String file = s.getAbsolutePath()+"\\"+s.getSequencia()+"_thumb.jpg";
-                        File delete = new File(file);
-                        boolean isDeleted = delete.delete();
-                        System.out.println(delete.getAbsoluteFile()+":"+isDeleted);
-                    }
-                }
+        });
+        service.setOnFailed(new EventHandler<WorkerStateEvent>() {
+
+            @Override
+            public void handle(WorkerStateEvent t) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
-            
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setHeaderText("Envio de Imagens");
-            a.setContentText("Imagens enviadas com sucesso!");
-            a.showAndWait();
-            
-        } catch (SQLException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-        }        
+        });
+        service.restart();
+        
+//        //TODO: verificar se todos os campos necessário estão preenchidos antes de enviar imagens, se possível colocar um progresso de etapas
+//        //lista de trafos maior que 0
+//        //estado,municipio,ano,tamanho da imagem selecionados
+//        
+//        Connection conn = ConnectionFactory.getConnectionWeb();
+//        
+//        String insert = "update pontos set imagem=? "
+//                + "where estado=? and cidade=? and ano_processamento=? "
+//                + "and chave_fk=? and sequencia=? and length(utilizadores) > 0";
+//        try {
+//            PreparedStatement ps = conn.prepareStatement(insert);
+//            
+//            int total = 0;
+//            for (Trafo trafo : trafoList) {
+//                for (Sequencia s : trafo.getSequencias()) {
+//                    total++;
+//                }
+//            }
+//            
+//            int count = 0;
+//            for(Trafo t : trafoList){
+//                for(Sequencia s : t.getSequencias()) {
+//                    
+//                    
+//                    int porcent = Integer.valueOf(comboResizeImage.getSelectionModel().getSelectedItem());
+//                    
+//                    File img = s.getImagens()[0];
+//                    String dest = s.getAbsolutePath()+"\\"+s.getSequencia()+"_thumb.jpg";
+//                    //Files.copy(img.toPath(), new File(dest).toPath(),StandardCopyOption.REPLACE_EXISTING);
+//                    //File imgResized = new File(dest);
+//                    BufferedImage bi = ImageIO.read(img);
+//                    int w = bi.getWidth();
+//                    int h = bi.getHeight();
+//                    float p = (float) porcent/100;
+//                    int newWidth = (int) (w*p);
+//                    int newHeight = (int) (h*p);
+//                    Thumbnails.of(img)
+//                            .size(newWidth, newHeight)
+//                            .outputFormat("jpg")
+//                            .toFile(new File(dest));
+//                    FileInputStream fis = new FileInputStream(new File(dest));
+//                    ps.setBlob(1, fis);
+//                    ps.setString(2, comboEstados.getSelectionModel().getSelectedItem());
+//                    ps.setString(3, comboMunicipios.getSelectionModel().getSelectedItem());
+//                    int ano = Integer.valueOf(comboAnos.getSelectionModel().getSelectedItem());
+//                    ps.setInt(4, ano);
+//                    ps.setString(5, t.getTrafo());
+//                    int seq = Integer.valueOf(s.getSequencia());
+//                    ps.setInt(6, seq);                    
+//                    
+//                    int i = ps.executeUpdate();    
+//                    
+//                    fis.close();
+//
+//                    System.out.println(s.getImagens()[0].getAbsoluteFile()+":"+i);
+//                    
+//                    count++;
+//                    final float p2 = (float) count/total;
+//                    
+//                    Platform.runLater(new Runnable() {
+//
+//                        @Override
+//                        public void run() {
+//                            progressIndicator.setProgress(p2);
+//                        }
+//                    });
+//                     
+//               }
+//                
+//            }
+//            
+//            if (checkDeleteImages.isSelected()){
+//                for(Trafo t : trafoList) {
+//                    for(Sequencia s : t.getSequencias()) {
+//                        String file = s.getAbsolutePath()+"\\"+s.getSequencia()+"_thumb.jpg";
+//                        File delete = new File(file);
+//                        boolean isDeleted = delete.delete();
+//                        System.out.println(delete.getAbsoluteFile()+":"+isDeleted);
+//                    }
+//                }
+//            }
+//            
+//            Alert a = new Alert(Alert.AlertType.INFORMATION);
+//            a.setHeaderText("Envio de Imagens");
+//            a.setContentText("Imagens enviadas com sucesso!");
+//            a.showAndWait();
+//            
+//        } catch (Exception ex) {
+//            Alert a = new Alert(Alert.AlertType.ERROR);
+//            a.setHeaderText("Problema ao enviar");
+//            a.setContentText(ex.getMessage());
+//            a.showAndWait();
+//            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+//        } 
+////        catch (FileNotFoundException ex) {
+////            Alert a = new Alert(Alert.AlertType.INFORMATION);
+////            a.setHeaderText("Problema ao enviar");
+////            a.setContentText(ex.getMessage());
+////            a.showAndWait();            
+////            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+////        } catch (IOException ex) {
+////            Alert a = new Alert(Alert.AlertType.INFORMATION);
+////            a.setHeaderText("Problema ao enviar");
+////            a.setContentText(ex.getMessage());
+////            a.showAndWait();            
+////            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+////        }        
                 
     }
     

@@ -26,5 +26,7 @@
         <CheckBox text="Apagar imagens geradas" selected="true" layoutX="520" layoutY="190" minWidth="150" fx:id="checkDeleteImages" />        
         
         <Button layoutX="10" layoutY="416" text="Enviar Imagens" minWidth="100"  onAction="#enviarImagens" fx:id="buttonEnviar" />
+        
+        <ProgressIndicator layoutX="520" layoutY="220" progress="0" prefWidth="100" prefHeight="100"  fx:id="progressIndicator"/>   
     </children>
 </AnchorPane>
