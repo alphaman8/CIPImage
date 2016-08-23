@@ -65,7 +65,7 @@ public class FXMLDocumentController implements Initializable {
     private void listarEstadosNoCombo() {            
         String select = "Select * from estados order by nome";
         try {
-            Connection conn = ConnectionFactory.getConnection();
+            Connection conn = ConnectionFactory.getConnectionWeb();
             PreparedStatement ps = conn.prepareStatement(select);
             ResultSet rs = ps.executeQuery();
             
@@ -92,7 +92,7 @@ public class FXMLDocumentController implements Initializable {
         PreparedStatement ps;
         try {
             
-            Connection conn = ConnectionFactory.getConnection();
+            Connection conn = ConnectionFactory.getConnectionWeb();
             ps = conn.prepareStatement(select);
             ps.setString(1, e);
             
@@ -124,7 +124,7 @@ public class FXMLDocumentController implements Initializable {
         PreparedStatement ps;
         try {
             
-            Connection conn = ConnectionFactory.getConnection();
+            Connection conn = ConnectionFactory.getConnectionWeb();
             ps = conn.prepareStatement(select);
             ps.setString(1, comboEstados.getSelectionModel().getSelectedItem());
             ps.setString(2, e);
@@ -156,7 +156,7 @@ public class FXMLDocumentController implements Initializable {
         //lista de trafos maior que 0
         //estado,municipio,ano,tamanho da imagem selecionados
         
-        Connection conn = ConnectionFactory.getConnection();
+        Connection conn = ConnectionFactory.getConnectionWeb();
         
         String insert = "update pontos set imagem=? "
                 + "where estado=? and cidade=? and ano_processamento=? "
