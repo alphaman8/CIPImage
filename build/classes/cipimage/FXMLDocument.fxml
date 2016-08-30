@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" minHeight="500" minWidth="800" xmlns:fx="http://javafx.com/fxml" fx:controller="cipimage.FXMLDocumentController">
+    <children>
+        <Label layoutX="10" layoutY="10" minHeight="16" minWidth="69" text="Diretório de imagens:" />
+        <TextField layoutX="10" layoutY="30" minHeight="16" minWidth="300" fx:id="dirField" />
+        <Button layoutX="10" layoutY="64" text="Abrir" minWidth="100"  onAction="#abrirDiretorio" fx:id="button" />
+        <TreeView layoutX="10" layoutY="100" minWidth="470" maxHeight="300" fx:id="dirTree" />        
+        
+        <Label layoutX="340" layoutY="10" minHeight="16" minWidth="69" text="Estados:" />
+        <ComboBox layoutX="340" layoutY="30" minWidth="100" fx:id="comboEstados" onAction="#selecionaEstado" />
+        <Label layoutX="520" layoutY="10" minHeight="16" minWidth="69" text="Municípios:" />
+        <ComboBox layoutX="520" layoutY="30" minWidth="150" fx:id="comboMunicipios" onAction="#selecionaMunicipio" />
+        <Label layoutX="520" layoutY="70" minHeight="16" minWidth="69" text="Ano processamento:" />
+        <ComboBox layoutX="520" layoutY="90" minWidth="150" fx:id="comboAnos" />
+        
+        <Label layoutX="520" layoutY="130" minHeight="16" minWidth="69" text="Tamanho da Imagem (%):" />
+        <ComboBox layoutX="520" layoutY="150" minWidth="150" fx:id="comboResizeImage" />        
+        
+        <CheckBox text="Apagar imagens geradas" selected="true" layoutX="520" layoutY="190" minWidth="150" fx:id="checkDeleteImages" />        
+        
+        <Button layoutX="10" layoutY="416" text="Enviar Imagens" minWidth="100"  onAction="#enviarImagens" fx:id="buttonEnviar" />
+        
+        <ProgressIndicator layoutX="520" layoutY="220" progress="0" prefWidth="100" prefHeight="100"  fx:id="progressIndicator"/>   
+    </children>
+</AnchorPane>

@@ -9,7 +9,6 @@ package cipimage;
 import conexao.ConnectionFactory;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.WorkerStateEvent;
@@ -29,7 +27,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ProgressIndicator;
@@ -39,9 +36,6 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javax.imageio.ImageIO;
-import javax.sound.midi.Sequence;
-import net.coobird.thumbnailator.Thumbnails;
-import sun.print.resources.serviceui;
 
 /**
  *

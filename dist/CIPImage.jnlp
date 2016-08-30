@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="CIPImage.jnlp">
+  <information>
+    <title>CIPImage</title>
+    <vendor>Marcelo</vendor>
+    <description>null</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="CIPImage.jar" size="16402" download="eager" />
+    <jar href="lib\ConnectionFactory.jar" size="2638" download="eager" />
+    <jar href="lib\mysql-connector-java-5.1.23-bin.jar" size="860471" download="eager" />
+    <jar href="lib\thumbnailator-0.4.2-all.jar" size="194623" download="eager" />
+  </resources>
+<security>
+  <all-permissions/>
+</security>
+  <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="CIPImage" >
+    <param name="requiredFXVersion" value="8.0+"/>
+  </applet-desc>
+  <jfx:javafx-desc  width="800" height="600" main-class="cipimage.CIPImage"  name="CIPImage" />
+  <update check="always"/>
+</jnlp>
